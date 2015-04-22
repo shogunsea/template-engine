@@ -1,0 +1,14 @@
+<html>
+  <head>
+    <title><* page.title *></title>
+  </head>
+  <body>
+    <h1><* teacher.name *></h1>
+    <* EACH students student *>
+      <* student.name *>
+      <* EACH student.nicknames nickname *>
+        <p><* nickname *></p>
+      <* ENDEACH *>
+    <* ENDEACH *>
+  </body>
+</html>
