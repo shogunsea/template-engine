@@ -1,1 +1,170 @@
-ruby templateEngine.ruby $1 $2 $3
+#! /usr/bin/env ruby
+
+require 'debugger'
+require 'json'
+
+
+class TemplateEngine 
+	attr_accessor :val
+
+	def initialize
+		@val = 100
+	end
+
+	def yolo
+		puts @val
+	end
+
+end
+
+# 3 arguments
+# templater template.panoramatemplate data.json output.html
+
+if ARGV.size != 3
+	puts "Wrong arguments"
+	exit 1
+end
+
+template_path, data_path, output_path = ARGV
+
+# ARGV.each do|a|
+#   puts "Argument: #{a}"
+# end
+
+puts "print file content: #{template_path}"
+
+# File.foreach(template_path) do |line|
+# 	puts line
+# end 
+
+# Robust, generic, recusive/iterative method.
+# line object which contains children lines?.
+# mapping between 'each' keyword and json/html
+
+data = File.read data_path
+output = File.open(output_path, "w");
+ # parse json into hash object
+parent_node = JSON.parse(data)
+
+template = File.readlines template_path
+template_content = []
+count = 1
+for template_line in template
+	template_content.push template_line
+end
+
+# one mode of rendering:
+# peek from current stack, use that
+# element as current obj.
+# EACH: push corresponding onto stack
+# ENDEACH: pop that obj from stack.
+stack = []
+stack.push(parent_node)
+	# <h1><* teacher.name *></h1>
+    # <* EACH students student *>
+
+loop_start_index = 0
+line = nil
+modified_line = nil
+processed = 0
+i = 0
+
+while i < template_content.length
+	line = template_content[i]
+# template_content.each_with_index do |line, index|
+	if line.include? "<* EACH"
+		# push current object onto stack
+		# record total children size with procesed_items size
+		# keep the starting index of current block
+
+		# padding with empty line
+
+		# !!!!!  unfinished block
+		modified_line = "\n" + line
+		output.write modified_line
+
+  	elsif line.include? "<* ENDEACH"
+		# padding with empty line
+		# check if total children size is equal to processed_items size
+		# if so keep index going
+		# else go back to record index
+
+		# !!!!!  unfinished block
+		if processed == stack.last.length - 1
+			i -= 0
+		else
+			i = loop_start_index - 1
+		end
+		
+		output.write ""
+		stack.pop
+
+  	elsif line.include? "<*"
+  		# fetch key from current hash object or array element.
+  		# parse the current line
+  		puts "YOOOOOOOO"
+  		keys = line.scan(/<\*[^\*]*\*>/).first.split(" ")[1].split(".")
+  		# peek from stack
+  		val = stack.last
+  		puts "Top of Stack is:" + val.class.to_s
+  		keys.each_with_index do |key, index|
+  			# debugger
+  			val = val[key]
+  		end
+  		puts val
+
+  	else
+  		# do not need to be substitude.
+  		output.write line
+    end
+    i += 1
+end
+
+debugger
+
+
+
+# File.open(template_path, "r") do |f|
+#   f.each_line do |line|
+#   	if line.include? "<* EACH"
+#   		puts "Loop start:"
+#   		puts line
+#   		output.write line
+#   	elsif line.include? "<* ENDEACH"
+#   		puts "Loop end:"
+#   		puts line
+#   	elsif line.include? "<*"
+
+#     end
+#   end
+# end
+
+output.close
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

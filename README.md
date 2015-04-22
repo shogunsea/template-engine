@@ -1,0 +1,1 @@
+Simple HTML template engine implemented in Ruby.
