@@ -5,7 +5,7 @@
   <body>
     <h1><* teacher.name *></h1>
     <* EACH students student *>
-      <* student.name *>
+      <* student.name.lastname *>
       <* EACH student.nicknames nickname *>
         <p><* nickname *></p>
       <* ENDEACH *>

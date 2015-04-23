@@ -5,10 +5,15 @@ require 'json'
 
 
 class TemplateEngine 
-	attr_accessor :val
+	attr_accessor :val, :scanner
 
 	def initialize
 		@val = 100
+		@scanner = 0
+	end
+
+	def scan_nextline
+		@scanner += 1
 	end
 
 	def yolo
@@ -52,7 +57,6 @@ loop_start_index_stack = []
 # 	add proper methods.
 loop_start_index = 0
 line = nil
-new_line = nil
 inner_line_index = 0
 i = 0
 
@@ -80,7 +84,6 @@ while i < template_content.length
 		index_stack.push 0
 		stack.push val
 		loop_start_index_stack.push (i + 1)
-
 
 		new_line = "\n"
 		output.write new_line
@@ -122,16 +125,17 @@ while i < template_content.length
   			val = stack.last[index_stack.last]
   			# debugger
   			if val.class == Hash
-  				keys.shift(keys.size - 1)
+  				# keys.shift(keys.size - 1)
+  				keys.shift
   				keys.each_with_index do |key, index|
 	  			# 
 	  				val = val[key]
 	  			end
-	  			output.write val
+	  			# output.write val
 	  		else
 	  			# array of string
 	  			# val is a string
-	  			output.write val
+	  			# output.write val
 	  		end
 
   			# inner_line_index += 1
@@ -143,11 +147,12 @@ while i < template_content.length
   			# top of stack is hash
   			val = stack.last
   			keys.each_with_index do |key, index|
-  			# 
   				val = val[key]
   			end
-  			output.write val
+  			# output.write val
   		end
+
+  		output.write line.gsub(/<\*[^\*]*\*>/, val)
   		i += 1
   	else
   		# do not need to be substitude.
@@ -155,7 +160,6 @@ while i < template_content.length
   		i += 1
     end
 end
-
 
 output.close
 
