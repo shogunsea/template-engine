@@ -27,15 +27,6 @@ end
 
 template_path, data_path, output_path = ARGV
 
-# ARGV.each do|a|
-#   puts "Argument: #{a}"
-# end
-
-puts "print file content: #{template_path}"
-
-# File.foreach(template_path) do |line|
-# 	puts line
-# end 
 
 # Robust, generic, recusive/iterative method.
 # line object which contains children lines?.
@@ -46,12 +37,7 @@ output = File.open(output_path, "w");
  # parse json into hash object
 parent_node = JSON.parse(data)
 
-template = File.readlines template_path
-template_content = []
-count = 1
-for template_line in template
-	template_content.push template_line
-end
+template_content = File.readlines template_path
 
 # one mode of rendering:
 # peek from current stack, use that
@@ -59,29 +45,46 @@ end
 # EACH: push corresponding onto stack
 # ENDEACH: pop that obj from stack.
 stack = []
-stack.push(parent_node)
-	# <h1><* teacher.name *></h1>
-    # <* EACH students student *>
-
+stack.push parent_node
+index_stack = []
+loop_start_index_stack = []
+# !!!!TODO: Make these variables as instance attributes,
+# 	add proper methods.
 loop_start_index = 0
 line = nil
-modified_line = nil
-processed = 0
+new_line = nil
+inner_line_index = 0
 i = 0
 
 while i < template_content.length
 	line = template_content[i]
-# template_content.each_with_index do |line, index|
+
 	if line.include? "<* EACH"
 		# push current object onto stack
 		# record total children size with procesed_items size
 		# keep the starting index of current block
 
-		# padding with empty line
+		# parse 'each' keyword
+		key = line.scan(/EACH[^\*]*/).first.split(" ")[1]
 
-		# !!!!!  unfinished block
-		modified_line = "\n" + line
-		output.write modified_line
+		if key.include? '.'
+			key = key.split(".").last
+		end
+
+		if stack.last.class == Array
+			val = stack.last[index_stack.last][key]
+		else
+			val = stack.last[key]
+		end
+
+		index_stack.push 0
+		stack.push val
+		loop_start_index_stack.push (i + 1)
+
+
+		new_line = "\n"
+		output.write new_line
+		i += 1
 
   	elsif line.include? "<* ENDEACH"
 		# padding with empty line
@@ -89,55 +92,70 @@ while i < template_content.length
 		# if so keep index going
 		# else go back to record index
 
-		# !!!!!  unfinished block
-		if processed == stack.last.length - 1
-			i -= 0
+		# debugger
+		if index_stack.last == stack.last.length - 1
+			stack.pop
+			index_stack.pop
+			loop_start_index_stack.pop
+			i += 1
 		else
-			i = loop_start_index - 1
+			index_stack[index_stack.size - 1] = index_stack.last + 1
+			i = loop_start_index_stack.last
 		end
-		
-		output.write ""
-		stack.pop
+
+		output.write "\n"
 
   	elsif line.include? "<*"
   		# fetch key from current hash object or array element.
   		# parse the current line
-  		puts "YOOOOOOOO"
-  		keys = line.scan(/<\*[^\*]*\*>/).first.split(" ")[1].split(".")
-  		# peek from stack
-  		val = stack.last
-  		puts "Top of Stack is:" + val.class.to_s
-  		keys.each_with_index do |key, index|
-  			# debugger
-  			val = val[key]
-  		end
-  		puts val
 
+  		# Ensure keys should always be array
+  		keys = line.scan(/<\*[^\*]*\*>/).first.split(" ")[1].split(".")
+
+  		# debugger
+  		if stack.last.class == Array
+  			# If top of stack is Array
+  			# pick last key
+  			# process with inner_line_index
+  			# 
+  			# Val still can be either hash or elements!!
+  			val = stack.last[index_stack.last]
+  			# debugger
+  			if val.class == Hash
+  				keys.shift(keys.size - 1)
+  				keys.each_with_index do |key, index|
+	  			# 
+	  				val = val[key]
+	  			end
+	  			output.write val
+	  		else
+	  			# array of string
+	  			# val is a string
+	  			output.write val
+	  		end
+
+  			# inner_line_index += 1
+  			# ??
+  			# Only Keep last keys
+  			# student.name --> name
+  			# student.name.lastname --> lastname
+  		else 
+  			# top of stack is hash
+  			val = stack.last
+  			keys.each_with_index do |key, index|
+  			# 
+  				val = val[key]
+  			end
+  			output.write val
+  		end
+  		i += 1
   	else
   		# do not need to be substitude.
   		output.write line
+  		i += 1
     end
-    i += 1
 end
 
-debugger
-
-
-
-# File.open(template_path, "r") do |f|
-#   f.each_line do |line|
-#   	if line.include? "<* EACH"
-#   		puts "Loop start:"
-#   		puts line
-#   		output.write line
-#   	elsif line.include? "<* ENDEACH"
-#   		puts "Loop end:"
-#   		puts line
-#   	elsif line.include? "<*"
-
-#     end
-#   end
-# end
 
 output.close
 
