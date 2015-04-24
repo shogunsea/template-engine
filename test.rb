@@ -3,7 +3,8 @@ require './engine'
 
 path = Dir.entries('./test_input')
 # remove "." and ".."
-path.shift(2)
+path.delete(".")
+path.delete("..")
 
 for folder in path
 	template_path = Dir.pwd + "/test_input/" + folder + "/template.html"
