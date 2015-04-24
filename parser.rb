@@ -22,4 +22,8 @@ class LineParser
 	def parse_substitution(line) 
 		line.scan(/<\*[^\*]*\*>/).first.split(" ")[1].split(".")
 	end
+
+	def substitute(original_line, parsed_line) 
+		original_line.gsub(/<\*[^\*]*\*>/, parsed_line)
+	end
 end

@@ -1,4 +1,6 @@
 require './engine'
+# Digest module to check md5sum of output file
+require 'digest'
 
 
 path = Dir.entries('./test_input')
@@ -14,6 +16,7 @@ for folder in path
 
 	argv = [template_path, data_path, output_path]
 	template_engine = TemplateEngine.new(argv)
+	
 	puts "Starting to parse file at: " + template_path + " ..."
 	template_engine.parse()
 	puts "Done."
